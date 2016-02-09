@@ -1,9 +1,20 @@
 
+// fixes
+// while loop issues
+ 
 function HTMLParser() {
+	// Variables shared by the parsing functions
+	// to keep track of the data
 	var pos = 0, input = '';
 	
+	// Used in your parser to throw errors
+	var assert = function(condition) {
+		if(!condition) {
+			throw new Error("test failed");
+		}
+	}
+
 	function parse(html) {
-		debugger;
 		pos = 0;
 		input = html;
 
@@ -35,7 +46,12 @@ function HTMLParser() {
 	// Parse a single node, either an element or text node
 	function parseNode() {
 		// if the first char is a <, parse an Element
-		
+		if(nextChar() == '<') {
+			// it's an element
+			return parseElement();
+		} else {
+			return parseText();
+		}
 		// else parseText
 	}
 
@@ -46,19 +62,22 @@ function HTMLParser() {
 		// check that we're starting with a <
         assert(consumeChar() === '<');
 
+        // consumeWhiteSpace();
 		// parseTagName
 		var tagName = parseTagName();
 
 		// TODO: parseAttributes
-		var attrs;
+		var attrs = parseAttributes();
 
 		// check that we've got an end >
+		// 
+		// <div class="MyClass"><h1>adsfs</h1>aflsdajkflsjdfkldjfkladsf</div>
         assert(consumeChar() === '>');
 
 		// TODO: Parse all it's children Nodes (using parseNodes)
-		var children;
+		var children = parseNodes();
 
-		// check that we have a matching end tag
+		// check that we have a matching end tag <h1> asdjfklasdjf </div>
         assert(consumeChar() === '<');
         assert(consumeChar() === '/');
         assert(parseTagName() === tagName);
@@ -82,12 +101,24 @@ function HTMLParser() {
 	// Hint:
 	// - You have continue parsing until you find the >
 	// - Consume White Space until you find an Attribute	
+	// 
+	// attributes = attr*
 	function parseAttributes() {
 		var attributes = {};
 		// PARSE ATTRIBUTES
+		while(true) {
+			consumeWhiteSpace();
+			if(nextChar() == '>') { break; }
 
+			var attribute = parseAttribute(); // { name: "class", value: "sectionTitle"}
+			attributes[attribute.name] = attribute.value;
+			// { "class": "sectionTitle"} // <div address class="myClass"
+			// <tagName attributes
+			// attributes = {attr}
+			// attr	= attrName | attrNameAndValue                                 
+		}
 
-		return attibutes;
+		return attributes;
 	}
 
 	// Step 4: Parse a single attribute assignment
@@ -95,7 +126,9 @@ function HTMLParser() {
 	function parseAttribute() {
 		var name, value;
 
-
+		var name = parseTagName();
+		assert(consumeChar() === '='); // =
+		var value = parseAttributeValue();		                            
 
 		return {
 			name: name,
@@ -107,13 +140,21 @@ function HTMLParser() {
 	// Step 5: Parse a Quoted Value "myClass"
 	function parseAttributeValue() {
 		// check for a quote
-		
+		assert(consumeChar() == '"');
+		var value = consumeWhile(function isNotQuoteChar(c) {
+			return c !== '"';
+		})
+
+
+		// check for end quote 
+		assert(consumeChar() == '"');
+		return value;
+
+
+		// class="sectionTitle slider-image"
 		// similar to parseTagName - get everything that's not a "
 		
 
-		// check for end quote 
-	
-		return value;
 	}
 
 	/*
@@ -170,3 +211,6 @@ function HTMLParser() {
 	}
 
 }
+
+
+

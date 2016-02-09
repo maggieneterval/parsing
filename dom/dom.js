@@ -1,3 +1,7 @@
+/*
+This file doesn't need to be edited, merely used for reference.
+ */
+
 function Node(children) {
 	this.children = children;
 }
