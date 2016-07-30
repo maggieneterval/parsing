@@ -83,19 +83,55 @@
 
   <script>
   describe("calculator", function() {
-    it("can handle basic math functions: 1+2", function() {
+          
+    it("can parse a a single digit number", function() {
+        expect(calc("4")).to.eql(4);
+    })
+          
+    it("can parse a number without a decimal", function() {
+        expect(calc("428")).to.eql(428);
+    })
+      
+    it("can parse a number with a decimal", function() {
+        expect(calc("428.27")).to.eql(428.27);
+    })
+      
+    it("can handle addition of two numbers", function() {
       expect(calc("1+2")).to.eql(3);
     });
+    
+    it("can handle subtraction of two numbers", function() {
+      expect(calc("4-2")).to.eql(2);
+    });
+    
+    it("handles any number of addition and subtraction statements", function() {
+      expect(calc("4+2+1-2+2")).to.eql(7);
+    });
 
-    it("can handle basic math functions: 1+2*3", function() {
-      expect(calc("1+2*3")).to.eql(7);
+    it("handles multiplication statements", function() {
+      expect(calc("2*3")).to.eql(6);
     })
 
-
-    it("can handle basic math functions: 4+(5-3*4)", function() {
-      expect(calc("4+(5-3*4)")).to.eql(-3);
+    it("handles division statements", function() {
+      expect(calc("8/2)")).to.eql(4);
+    }) 
+    
+    it("handles any number of multiplication statements", function() {
+      expect(calc("5*3*4*8*2")).to.eql(960);
+    })
+    
+    it("handles any number of division statements", function() {
+      expect(calc("(100/2/5/5")).to.eql(2);
+    })
+    
+    it("handles a math expression with parentheses", function() {
+      expect(calc("(5-3*4)")).to.eql(-7);
     })    
-  })
+
+    it("handles more complication mathmatical expressions", function() {
+      expect(calc("(5 - (3 + (2 * 2 / 2) *(4 / 2)))")).to.eql(-2);
+    })    
+  });
   </script>
   <script>mocha.run();</script>
 
