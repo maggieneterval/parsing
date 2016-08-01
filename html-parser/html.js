@@ -1,178 +1,180 @@
-function assert(x) {
-  return x === true;
-}
-
 function HTMLParser() {
-    var pos = 0,
+  // Variables shared by the parsing functions
+  // to keep track of the data
+  var pos = 0,
+    input = '';
 
-        input = '',
+  // Used in your parser to throw errors
+  var assert = function(condition) {
+    if (!condition) {
+      throw new Error("test failed");
+    }
+  }
 
-        // parse an HTML document and return the root element
-        parse = function (html) {
-            pos = 0;
-            input = html;
+  function parse(html) {
+    pos = 0;
+    input = html;
 
-            var nodes = parseNodes();
+    var nodes = parseNodes();
 
-            // if the document contains a root element, just return it.
-            // Oterhwise, create one
-            if (nodes.length === 1) {
-                return nodes[0];
-            }
-            else {
-                return new ElementNode('html', [], nodes);
-            }
-        },
+    // wrap nodes in HTML if not a single root node
+    if (nodes.length === 1) {
+      return nodes[0];
+    } else {
+      return new ElementNode('html', [], nodes);
+    }
+  }
 
-        // parse a sequence of sibling nodes
-        parseNodes = function () {
-            var nodes = [];
-            while (true) {
-                consumeWhiteSpace();
-                if (eof() === true || startsWith('</') === true) {
-                    break;
-                }
-                nodes.push(parseNode());
-            }
-            return nodes;
-        },
+  // parse a sequence of sibling nodes
+  function parseNodes() {
+    var nodes = [];
+    while (true) {
+      consumeWhiteSpace();
+      if (eof() === true || startsWith('</') === true) {
+        break;
+      }
 
-        // parse a single node
-        parseNode = function () {
-            switch(nextChar()) {
-                case '<':
-                    return parseElement();
-                default:
-                    return parseText();
-            }
-        },
+      nodes.push(parseNode());
+    }
+    return nodes;
+  }
 
-        // parse a single element, including its open tag,
-        // contents and closing tag.
-        parseElement = function () {
-            //Opening tag
-assert(consumeChar() === '<');
-            var tagName = parseTagName();
-            var attrs = parseAttributes();
-            assert(consumeChar() === '>');
+  // Step 1:
+  // Parse a single node, either an element or text node
+  function parseNode() {
+    // if the first char is a <, parse an Element
+    // else parseText
+  }
 
-            //Contents
-            var children = parseNodes();
 
-            //Closing tag
-            assert(consumeChar() === '<');
-            assert(consumeChar() === '/');
-            assert(parseTagName() === tagName);
-            assert(consumeChar() === '>');
+  // Step 2:
+  // Parse a single element tag
+  function parseElement() {
+    // check that we're starting with a <
+    assert(consumeChar() === '<');
 
-            return new ElementNode(tagName, attrs, children);
-        },
+    // parseTagName
+    var tagName = parseTagName();
 
-        // parse a tag or attribute name
-        parseTagName = function () {
-            return consumeWhile(isTagNameChar);
-        },
+    // TODO: parseAttributes
+    var attrs;
 
-        isTagNameChar = function (str) {
-            var c = str.charCodeAt(0);
-            return (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) ||
-                   (c >= 'A'.charCodeAt(0) && c <= 'Z'.charCodeAt(0)) ||
-                   (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0));
-        },
+    // check that we've got an end >
+    // 
+    // <div class="MyClass"><h1>adsfs</h1>aflsdajkflsjdfkldjfkladsf</div>
+    assert(consumeChar() === '>');
 
-        // parse a list of name="value" pairs, separated by
-        // whitespace.
-        parseAttributes = function () {
-            var attributes = {};
-            while (true) {
-                consumeWhiteSpace();
-                if (nextChar() === '>') {
-                    break;
-                }
-                var attribute = parseAttr();
-                attributes[attribute.name] = attribute.value;
-            }
-            return attributes;
-        },
+    // TODO: Parse all it's children Nodes (using parseNodes)
+    var children;
 
-        // parse a single name="value" pair
-        parseAttr = function () {
-            var name = parseTagName();
-            assert(consumeChar() === '=');
-            var value = parseAttrValue();
+    // check that we have a matching end tag
+    // and that the tag is the same 
+    // hint:
+    //   use parseTagName to get the tagName and match it to the previous one
+    assert(consumeChar() === '<');
+    assert(consumeChar() === '/');
+    assert(parseTagName() === tagName);
+    assert(consumeChar() === '>');
 
-            return {
-                name: name,
-                value: value
-            };
-        },
+    return new ElementNode(tagName, attrs, children);
+  }
 
-        // parse a quoted value
-        parseAttrValue = function () {
-            var openQuote = consumeChar();
-            assert(openQuote === '"' || openQuote === '\'');
-            var value = consumeWhile(isAttributeValueChar(openQuote));
-            assert(consumeChar() === openQuote);
+  // this will return the tagName as a String
+  function parseTagName() {
+    function isTagNameChar(str) {
+      var nextChar = str.charAt(0);
+      return /[A-Za-z0-9]/.test(nextChar);
+    }
 
-            return value;
-        },
+    return consumeWhile(isTagNameChar);
+  }
 
-        isAttributeValueChar = function (quote) {
-            return function (c) {
-                return c !== quote;
-            };
-        },
+  // Step 3: Parse a set of attributes inside the element
+  // e.g. class="my-class" id="testId"
+  // Hint:
+  // - You have continue parsing until you find the >
+  // - Consume White Space until you find an Attribute  
+  // 
+  // attributes = attr*
+  function parseAttributes() {
+    var attributes = {};
+    // PARSE ATTRIBUTES
 
-        // parse a text node
-        parseText = function () {
-            return new TextNode(consumeWhile(isTextChar));
-        },
 
-        isTextChar = function (c) {
-            return c !== '<';
-        },
 
-        // Consume and discard zero or more whitespace characters.
-        consumeWhiteSpace = function () {
-            consumeWhile(isWhiteSpace);
-        },
+    return attributes;
+  }
 
-        isWhiteSpace = function (c) {
-            return c === ' ' || c === '\n';
-        },
+  // Step 4: Parse a single attribute assignment
+  // e.g. class="myClass"
+  function parseAttribute() {
+    var name, value;
 
-        // Consume characters until 'test' returns false
-        consumeWhile = function (test) {
-            var result = '';
+    return {
+      name: name,
+      value: value
+    };
+  }
 
-            while(!eof() && test(nextChar())) {
-                result += consumeChar();
-            }
 
-            return result;
-        },
+  // Step 5: Parse a Quoted Value "myClass"
+  // class="sectionTitle slider-image"
+  function parseAttributeValue() {
+    // check for a quote
+    // similar to parseTagName - get everything that's not an end-quote: "
+    // check for end quote 
+    return value;
 
-        // Return the current character, and advance self.pos to the
-        // next character.
-        consumeChar = function () {
-            return input.charAt(pos++);
-        },
+  }
 
-        // Read the current character without consuming it.
-        nextChar = function () {
-            return input.charAt(pos);
-        },
+  /*
+    Consume text and create a TextNode
+   */
+  function parseText() {
+    var innerText = consumeWhile(isTextChar);
+    return new TextNode(innerText);
+  }
 
-        // Does the current input start with the given string?
-        startsWith = function (str) {
-            return input.substr(pos).indexOf(str) === 0;
-        },
 
-        // Return true if all input is conxumed.
-        eof = function () {
-            return pos >= input.length;
-        };
+  // Given Utility Functions for your Parser
+  // These should be pretty clear
+  function isTextChar(c) {
+    return c !== '<';
+  }
 
+  function consumeWhiteSpace() {
+    consumeWhile(isWhiteSpace);
+  }
+
+  function isWhiteSpace(c) {
+    return c === ' ' || c === '\n';
+  }
+
+  function consumeWhile(testFn) {
+    var result = '';
+
+    while (!eof() && testFn(nextChar())) {
+      result += consumeChar();
+    }
+    return result;
+  }
+
+
+  function consumeChar() {
+    return input.charAt(pos++);
+  }
+
+  function nextChar() {
+    return input.charAt(pos);
+  }
+
+  function startsWith(str) {
+    return input.substr(pos).indexOf(str) === 0;
+  }
+
+  function eof() {
+    return pos >= input.length;
+  }
 
   return {
     parse: parse
