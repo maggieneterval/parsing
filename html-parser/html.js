@@ -44,6 +44,11 @@ function HTMLParser() {
   function parseNode() {
     // if the first char is a <, parse an Element
     // else parseText
+    if (!isTextChar(nextChar())) {
+      return parseElement();
+    } else {
+      return parseText();
+    }
   }
 
 
@@ -57,18 +62,18 @@ function HTMLParser() {
     var tagName = parseTagName();
 
     // TODO: parseAttributes
-    var attrs;
+    var attrs = parseAttributes();
 
     // check that we've got an end >
-    // 
+    //
     // <div class="MyClass"><h1>adsfs</h1>aflsdajkflsjdfkldjfkladsf</div>
     assert(consumeChar() === '>');
 
     // TODO: Parse all it's children Nodes (using parseNodes)
-    var children;
+    var children = parseNodes()
 
     // check that we have a matching end tag
-    // and that the tag is the same 
+    // and that the tag is the same
     // hint:
     //   use parseTagName to get the tagName and match it to the previous one
     assert(consumeChar() === '<');
@@ -93,14 +98,18 @@ function HTMLParser() {
   // e.g. class="my-class" id="testId"
   // Hint:
   // - You have continue parsing until you find the >
-  // - Consume White Space until you find an Attribute  
-  // 
+  // - Consume White Space until you find an Attribute
+  //
   // attributes = attr*
   function parseAttributes() {
     var attributes = {};
-    // PARSE ATTRIBUTES
 
-
+    consumeWhiteSpace();
+    while(nextChar() != '>'){
+      consumeWhiteSpace();
+      var singleAttribute = parseAttribute()
+      attributes[singleAttribute.name] = singleAttribute.value;
+    }
 
     return attributes;
   }
@@ -109,6 +118,18 @@ function HTMLParser() {
   // e.g. class="myClass"
   function parseAttribute() {
     var name, value;
+
+    name = ''
+    while(nextChar()!='=' && nextChar() != ' '){
+      name += consumeChar();
+    }
+    consumeWhiteSpace();
+    assert(nextChar() == '=')
+    consumeChar();
+    consumeWhiteSpace();
+
+    value = parseAttributeValue()
+
 
     return {
       name: name,
@@ -120,9 +141,20 @@ function HTMLParser() {
   // Step 5: Parse a Quoted Value "myClass"
   // class="sectionTitle slider-image"
   function parseAttributeValue() {
-    // check for a quote
-    // similar to parseTagName - get everything that's not an end-quote: "
-    // check for end quote 
+
+    assert(nextChar() == '"')
+    consumeChar()
+
+    var value = ''
+    while(nextChar()!='"'){
+      value += consumeChar();
+    }
+
+    assert(nextChar() == '"');
+    consumeChar();
+
+    consumeWhiteSpace();
+
     return value;
 
   }

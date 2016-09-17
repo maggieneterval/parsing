@@ -48,5 +48,12 @@ describe('HTMLParser', function () {
         expect(nodes.children.length).toEqual(2);
     });
 
+    it('should deal with complexity', function () {
+        var nodes = HTMLParser().parse('<html><div><p>Hello world</p><p>Goodbye World <a href="google.com">Google</a></p></div></html>');
+
+        console.log('NODES: ', nodes)
+        expect('hi').toEqual('hi');
+    });
+
 
 });
